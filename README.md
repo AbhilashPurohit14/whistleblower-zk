@@ -156,16 +156,8 @@ Open:
 
 ```
 http://localhost:3000
+
 ```
-
----
-
-## Authors
-
-- **Abhilash Purohit**
-- **Suchet Kumbar**
-- **Pratik Anand**
-
 ---
 
 ## License
