@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+body{
+  margin:0;
+  font-family:'Poppins', sans-serif;
+  background:#230232;
+  color:white;
+}
+
+.container{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.card{
+  background:#430651;
+  padding:50px;
+  border-radius:14px;
+  width:600px;
+  text-align:center;
+  box-shadow:0 12px 40px rgba(0,0,0,0.5);
+}
+
+.title{
+  font-size:34px;
+  color: cadetblue;
+  margin-bottom:10px;
+}
+
+.subtitle{
+  font-size:16px;
+  color:#537599;
+  margin-bottom:30px;
+}
+
+.upload input{
+  padding:12px;
+  font-size:16px;
+  background:#0f172a;
+  border:1px solid #475569;
+  border-radius:6px;
+  color:#cbd5f5;
+}
+
+.status{
+  margin-top:20px;
+  font-size:20px;
+  color:#4c6783;
+}
+
+.result{
+  margin-top:25px;
+  font-size:24px;
+  font-weight:600;
+  color: rgb(231, 242, 242);
+}
+
+.crypto{
+  margin-top:35px;
+  text-align:left;
+  background:#0f172a;
+  padding:18px;
+  border-radius:8px;
+}
+
+.crypto h3{
+  margin-bottom:12px;
+}
+
+.crypto ul{
+  list-style:none;
+  padding:0;
+}
+
+.crypto li{
+  margin-bottom:6px;
+  color:#cbd5f5;
+}
+
+.team{
+  margin-top:30px;
+  font-size:14px;
+  color:#94a3b8;
+}
