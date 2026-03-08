@@ -15,18 +15,36 @@ app.post("/verify", async (req, res) => {
   try {
     const { proof, publicSignals } = req.body;
 
-    if (!proof || !publicSignals) {
+    if (!proof || !publicSignals || publicSignals.length < 1) {
       return res.status(400).json({
         verified: false,
         message: "Missing proof or public signals"
       });
     }
 
+    // Phase 4: Document Commitment Registry Check
+    // publicSignals[0] is the `root` public input mapped from whistleblower.circom
+    const submittedRoot = publicSignals[0];
+    
+    let registry;
+    try {
+      registry = JSON.parse(fs.readFileSync("./registry.json", "utf8"));
+    } catch (e) {
+      registry = []; // Fallback if file doesn't exist
+    }
+
+    if (!registry.includes(submittedRoot)) {
+       return res.json({
+         verified: false,
+         message: "Unauthorized Document: The document's Merkle root is not registered as an authentic source."
+       });
+    }
+
     const verified = await snarkjs.groth16.verify(vKey, publicSignals, proof);
 
     res.json({
       verified,
-      message: verified ? "Zero-Knowledge Proof Verified" : "Invalid Cryptographic Proof"
+      message: verified ? "Zero-Knowledge Proof Verified & Document Authorized" : "Invalid Cryptographic Proof"
     });
 
   } catch (err) {

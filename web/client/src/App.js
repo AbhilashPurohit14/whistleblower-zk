@@ -104,7 +104,7 @@ function App() {
       }
 
       const input = {
-          root: "0", // Dummy root for prototype
+          root: "11024236530986356642603013506301104427207406034884053437345182671873798377531", // Official test root
           targetPhrase: textToAscii(phrase, M),
           documentChunk: textToAscii(chunkText, max_N),
           pathElements: ["0","0","0"],
