@@ -1,3 +1,5 @@
-node_modules
-uploads
+build/
+uploads/
 *.wtns
+*.json
+node_modules/
