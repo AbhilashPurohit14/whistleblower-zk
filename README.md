@@ -1,165 +1,200 @@
-# Privacy-Preserving Whistleblower System using zk-SNARKs
+# Privacy-Preserving Whistleblower System (Anonymous Document Authenticator)
 
-A web-based cryptographic system that allows a whistleblower to prove that a confidential document contains sensitive information **without revealing the document itself**.
+A cryptography-based web application that allows a whistleblower to prove that a confidential document contains sensitive information **without revealing the document itself**.
 
-The system uses **zero-knowledge proofs (zk-SNARKs)** to verify the presence of a confidential phrase inside a document while preserving complete privacy.
-
----
-
-## Project Overview
-
-In many real-world situations, whistleblowers need to prove that sensitive information exists without exposing the entire document.
-
-This project demonstrates how **zero-knowledge cryptography** can solve this problem.
-
-The system allows a user to upload a document and generate a cryptographic proof that the document contains a confidential phrase such as:
-
-```
-Confidential: Toxic Waste
-```
-
-The verifier can confirm that the statement is true **without seeing the document**.
+This system uses **zk-SNARKs (Groth16)** to generate a **zero-knowledge proof** verifying the presence of a phrase inside a document while keeping the document private.
 
 ---
 
-## System Architecture
+## Team
 
-```
-User Uploads Document
-        ↓
-Phrase Detection
-        ↓
-Poseidon Hashing
-        ↓
-Merkle Tree Verification
-        ↓
-zk-SNARK Proof Generation
-        ↓
-Proof Verification (Groth16)
-```
+Developed by:
+
+- Abhilash Purohit
+- Suchet Kumbar
+- Pratik Anand
 
 ---
 
-## Technologies Used
+## Problem Statement
 
-### Cryptography
+Whistleblowers often possess sensitive documents that expose wrongdoing, but revealing the full document may expose their identity.
 
-- **Circom** – zk-SNARK circuit design
-- **snarkjs** – proof generation and verification
-- **Groth16** – zk-SNARK proving system
-- **Poseidon Hash Function**
-- **Merkle Tree Authentication**
-
-### Web Stack
-
-- **React.js** – Frontend interface
-- **Node.js + Express** – Backend server
-- **Multer** – File upload handling
-
----
-
-## Features
-
-- Upload confidential documents
-- Detect presence of sensitive phrases
-- Generate **zero-knowledge proofs**
-- Verify proofs without revealing document contents
-- Web-based whistleblower portal
-- Privacy-preserving authentication
-
----
-
-## Project Structure
-
-```
-whistleblower-zk
-│
-├── circuits
-│   └── whistleblower.circom
-│
-├── build
-│   ├── whistleblower.r1cs
-│   ├── circuit_final.zkey
-│   └── verification_key.json
-│
-├── scripts
-│   └── computeRoot.js
-│
-├── web
-│   ├── client (React frontend)
-│   └── server (Node backend)
-│
-└── README.md
-```
+This project demonstrates how **Zero-Knowledge Proofs** can be used to verify information **without revealing the underlying data**.
 
 ---
 
 ## How It Works
 
-1. User uploads a document through the web interface.
-2. The system checks whether the document contains a confidential phrase.
-3. The document is processed using cryptographic hashing.
-4. A zk-SNARK proof is generated using the Circom circuit.
-5. The server verifies the proof without accessing the document contents.
+1. The user uploads a document.
+2. The user enters a phrase they want to prove exists in the document.
+3. The system checks the phrase locally.
+4. A **zk-SNARK proof (Groth16)** is generated.
+5. The verifier confirms the proof **without seeing the document**.
+
+This preserves the whistleblower's anonymity while still proving authenticity.
 
 ---
 
-## Cryptographic Details
+## Cryptographic Components
 
 | Component | Description |
-|--------|-------------|
-| zk-SNARK Protocol | Groth16 |
+|-----------|-------------|
+| zk-SNARK System | Groth16 |
 | Hash Function | Poseidon |
+| Circuit Language | Circom |
+| Proof System | snarkjs |
 | Merkle Tree Depth | 3 |
-| Proof Size | ~200 bytes |
-| Verification Time | < 100 ms |
+| Frontend | React |
+| Backend | Node.js |
 
 ---
 
-## Example Use Case
+## Project Architecture
 
-```
-Whistleblower possesses internal company document
-        ↓
-Document contains evidence of environmental violation
-        ↓
-System generates zero-knowledge proof
-        ↓
-Verifier confirms existence of evidence without seeing document
-```
+
+User (Browser)
+│
+├── React Frontend
+│
+├── Node.js Server
+│
+├── zk Circuit (Circom)
+│
+├── Witness Generation
+│
+├── Proof Generation (Groth16)
+│
+└── Verification
+
 
 ---
 
-## Running the Project Locally
+## Project Structure
 
-### Install Dependencies
 
-```
+whistleblower-zk/
+│
+├── circuits/
+│ └── whistleblower.circom
+│
+├── web/
+│ ├── client/ # React frontend
+│ └── server/ # Node backend
+│
+├── build/ # zk artifacts
+│
+├── scripts/ # utility scripts
+│
+└── README.md
+
+
+---
+
+## Installation
+
+Clone the repository:
+
+
+git clone https://github.com/AbhilashPurohit14/whistleblower-zk.git
+
+cd whistleblower-zk
+
+
+Install dependencies:
+
+
 npm install
-```
 
-### Start Backend Server
 
-```
+---
+
+## Running the Project
+
+Start the backend:
+
+
 cd web/server
 node server.js
-```
 
-### Start Frontend
 
-```
+Start the frontend:
+
+
 cd web/client
 npm start
-```
 
-Open:
 
-```
+Open the application in your browser:
+
+
 http://localhost:3000
 
-```
+
+---
+
+## Demo Usage
+
+1. Upload a `.txt` document.
+2. Enter a phrase that exists in the document.
+3. Generate the proof.
+
+If the phrase exists, the system will return:
+
+
+Proof Verified ✅
+
+
+Otherwise:
+
+
+Invalid Proof ❌
+
+
+---
+
+## Example
+
+Document:
+
+
+This report confirms illegal dumping occurred.
+
+
+Phrase:
+
+
+illegal dumping
+
+
+Result:
+
+
+Proof Verified ✅
+
+
+---
+
+## Applications
+
+This concept can be applied to:
+
+- Whistleblower protection systems
+- Secure document verification
+- Privacy-preserving compliance reporting
+- Confidential auditing
+
+---
+
+## Future Improvements
+
+- Real Merkle tree construction from documents
+- On-chain proof verification
+- Support for PDF and structured documents
+- More advanced zk circuits
+
 ---
 
 ## License
 
-This project is developed for educational and research purposes.
+This project is for educational purposes.
