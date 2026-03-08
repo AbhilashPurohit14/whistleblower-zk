@@ -3,6 +3,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Points, PointMaterial } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
 import { UploadCloud, ShieldAlert, Lock, Fingerprint, CheckCircle, XCircle, ChevronRight, Activity } from "lucide-react";
+import * as snarkjs from "snarkjs";
 import "./App.css";
 
 // --- 3D Background System ---
@@ -59,24 +60,76 @@ function App() {
     const file = event.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      setCurrentStep(1); // Uploading
-      const res = await fetch("http://localhost:4000/prove", {
-        method: "POST",
-        body: formData,
+      setCurrentStep(1); // Encrypt & Upload (simulated)
+
+      // 1. Read file locally in browser
+      const fileText = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(new Error("Failed to read file"));
+        reader.readAsText(file);
       });
 
-      setCurrentStep(2); // Witness
-      await new Promise((r) => setTimeout(r, 1200));
+      // Provide minimal delay for UI experience
+      await new Promise((r) => setTimeout(r, 800));
 
-      setCurrentStep(3); // Proof
-      await new Promise((r) => setTimeout(r, 1500));
+      setCurrentStep(2); // Compute Witness
+      
+      const phrase = "Confidential: Toxic Waste";
+      const M = 25; // Length of phrase
+      const max_N = 64; // Circuit chunk size
 
-      setCurrentStep(4); // Verifying
-      await new Promise((r) => setTimeout(r, 1000));
+      if (!fileText.includes(phrase)) {
+        throw new Error("Target phrase missing from document. Cannot compute witness.");
+      }
+
+      // Convert string to ASCII array
+      const textToAscii = (text, length) => {
+        const arr = new Array(length).fill(0);
+        for(let i=0; i < Math.min(text.length, length); i++) {
+            arr[i] = text.charCodeAt(i);
+        }
+        return arr;
+      };
+
+      // Find a 64-byte chunk that contains the phrase
+      const phraseIndex = fileText.indexOf(phrase);
+      // Try to center it, or at least fit it inside a 64 byte window
+      let startIdx = document.documentElement.scrollTop || Math.max(0, phraseIndex - 10);
+      // Ensure the chunk doesn't overflow the file boundaries if possible (but we only need 64 bytes)
+      let chunkText = fileText.substring(startIdx, startIdx + max_N);
+      if (chunkText.length < max_N) {
+          chunkText = chunkText.padEnd(max_N, " ");
+      }
+
+      const input = {
+          root: "0", // Dummy root for prototype
+          targetPhrase: textToAscii(phrase, M),
+          documentChunk: textToAscii(chunkText, max_N),
+          pathElements: ["0","0","0"],
+          pathIndices: ["0","0","0"]
+      };
+
+      await new Promise((r) => setTimeout(r, 600));
+
+      setCurrentStep(3); // Synthesize SNARK
+      
+      // 2. Generate ZK Proof entirely in the browser using WASM
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+        input,
+        "/whistleblower.wasm",
+        "/circuit_final.zkey"
+      );
+
+      setCurrentStep(4); // Verify Network
+
+      // 3. Send ONLY the generated cryptographic proof to the verifier network
+      const res = await fetch("http://localhost:4000/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proof, publicSignals }),
+      });
 
       const data = await res.json();
       
@@ -96,8 +149,8 @@ function App() {
       console.error(err);
       setCurrentStep(5);
       setIsSuccess(false);
-      setResultTitle("Network Error");
-      setResultMsg("Server error during cryptographic verification.");
+      setResultTitle("Authentication Error");
+      setResultMsg(err.message || "Cryptographic error during proof generation/verification.");
     }
   };
 
