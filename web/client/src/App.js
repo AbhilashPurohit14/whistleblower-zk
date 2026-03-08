@@ -5,15 +5,25 @@ function App() {
 
   const [status,setStatus] = useState("Waiting for document...");
   const [result,setResult] = useState("");
+  const [phrase,setPhrase] = useState("");
 
   const sendFile = async (event) => {
 
     const file = event.target.files[0];
 
-    if(!file) return;
+    if(!file){
+      alert("Please upload a file");
+      return;
+    }
+
+    if(!phrase || phrase.trim()===""){
+      alert("Please enter a phrase");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file",file);
+    formData.append("phrase",phrase);
 
     try{
 
@@ -61,6 +71,13 @@ function App() {
           Verify that a confidential document contains sensitive information
           without revealing the document itself.
         </p>
+
+        <input
+          type="text"
+          placeholder="Enter phrase to verify"
+          value={phrase}
+          onChange={(e)=>setPhrase(e.target.value)}
+        />
 
         <div className="upload">
           <input type="file" onChange={sendFile}/>
