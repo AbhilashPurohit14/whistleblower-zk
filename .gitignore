@@ -1,3 +1,19 @@
-node_modules
-uploads
+# Dependency directories
+node_modules/
+web/client/node_modules/
+web/server/node_modules/
+
+# Build and Output
+uploads/
+build/
 *.wtns
+*.r1cs
+*.zkey
+*.ptau
+*.wasm
+
+# Environment
+.env
+
+# Memory
+memory/

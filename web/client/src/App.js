@@ -1,106 +1,277 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Points, PointMaterial } from "@react-three/drei";
+import { motion, AnimatePresence } from "framer-motion";
+import { UploadCloud, ShieldAlert, Lock, Fingerprint, CheckCircle, XCircle, ChevronRight, Activity } from "lucide-react";
 import "./App.css";
 
+// --- 3D Background System ---
+// Generate random positions for the nodes
+const particlesPosition = new Float32Array(1500 * 3);
+for (let i = 0; i < 1500 * 3; i++) {
+  particlesPosition[i] = (Math.random() - 0.5) * 10;
+}
+
+function NodeNetwork() {
+  const ref = useRef();
+  
+  useFrame((state, delta) => {
+    if (ref.current) {
+      ref.current.rotation.x -= delta / 30;
+      ref.current.rotation.y -= delta / 40;
+    }
+  });
+
+  return (
+    <group rotation={[0, 0, Math.PI / 4]}>
+      <Points ref={ref} positions={particlesPosition} stride={3} frustumCulled={false}>
+        <PointMaterial
+          transparent
+          color="#00f2fe"
+          size={0.03}
+          sizeAttenuation={true}
+          depthWrite={false}
+          opacity={0.4}
+        />
+      </Points>
+    </group>
+  );
+}
+
+// --- Main App ---
 function App() {
+  const [currentStep, setCurrentStep] = useState(0); 
+  // 0: idle, 1: uploading, 2: witness, 3: proof, 4: verifying, 5: complete
+  
+  const [resultTitle, setResultTitle] = useState("");
+  const [resultMsg, setResultMsg] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const [status,setStatus] = useState("Waiting for document...");
-  const [result,setResult] = useState("");
+  const steps = [
+    { title: "Await Document", icon: <UploadCloud size={20}/> },
+    { title: "Encrypt & Upload", icon: <Activity size={20}/> },
+    { title: "Compute Witness", icon: <Fingerprint size={20}/> },
+    { title: "Synthesize SNARK", icon: <Lock size={20}/> },
+    { title: "Verify Network", icon: <CheckCircle size={20}/> }
+  ];
 
-  const sendFile = async (event) => {
-
+  const handleFileUpload = async (event) => {
     const file = event.target.files[0];
-
-    if(!file) return;
+    if (!file) return;
 
     const formData = new FormData();
-    formData.append("file",file);
+    formData.append("file", file);
 
-    try{
-
-      setStatus("Uploading document...");
-
-      const res = await fetch("http://localhost:4000/prove",{
-        method:"POST",
-        body:formData
+    try {
+      setCurrentStep(1); // Uploading
+      const res = await fetch("http://localhost:4000/prove", {
+        method: "POST",
+        body: formData,
       });
 
-      setStatus("Generating witness...");
-      await new Promise(r => setTimeout(r,800));
+      setCurrentStep(2); // Witness
+      await new Promise((r) => setTimeout(r, 1200));
 
-      setStatus("Generating ZK proof...");
-      await new Promise(r => setTimeout(r,800));
+      setCurrentStep(3); // Proof
+      await new Promise((r) => setTimeout(r, 1500));
 
-      setStatus("Verifying proof...");
-      await new Promise(r => setTimeout(r,800));
+      setCurrentStep(4); // Verifying
+      await new Promise((r) => setTimeout(r, 1000));
 
       const data = await res.json();
+      
+      setCurrentStep(5); // Complete
+      
+      if (data.verified) {
+        setIsSuccess(true);
+        setResultTitle("Authentication Verified");
+        setResultMsg("Zero-Knowledge proof generated and verified successfully. Document contains the required signatures.");
+      } else {
+        setIsSuccess(false);
+        setResultTitle("Verification Failed");
+        setResultMsg("Invalid Proof: " + (data.message || "Document verification failed."));
+      }
 
-      setResult(data.verified ? "Proof Verified ✅" : "Invalid Proof ❌");
-
-      setStatus("Verification complete");
-
+    } catch (err) {
+      console.error(err);
+      setCurrentStep(5);
+      setIsSuccess(false);
+      setResultTitle("Network Error");
+      setResultMsg("Server error during cryptographic verification.");
     }
-    catch(err){
-
-      console.log(err);
-      setStatus("Error during verification");
-
-    }
-
   };
 
-  return(
+  const resetProcess = () => {
+    setCurrentStep(0);
+    setResultTitle("");
+    setResultMsg("");
+  };
 
-    <div className="container">
-
-      <div className="card">
-
-        <h1 className="title">Anonymous Document Authenticator</h1>
-
-        <p className="subtitle">
-          Verify that a confidential document contains sensitive information
-          without revealing the document itself.
-        </p>
-
-        <div className="upload">
-          <input type="file" onChange={sendFile}/>
-        </div>
-
-        <div className="status">
-          <p>{status}</p>
-        </div>
-
-        <div className="result">
-          {result && <h2>{result}</h2>}
-        </div>
-
-        <div className="crypto">
-
-          <h3>Cryptography Details</h3>
-
-          <ul>
-            <li><b>ZK System:</b> Groth16 zk-SNARK</li>
-            <li><b>Hash Function:</b> Poseidon</li>
-            <li><b>Merkle Tree Depth:</b> 3</li>
-            <li><b>Proof Size:</b> ~200 bytes</li>
-            <li><b>Verification Time:</b> &lt; 100 ms</li>
-          </ul>
-
-        </div>
-
-        <div className="team">
-          <p>Developed by</p>
-          <p><b>Abhilash Purohit</b></p>
-          <p><b>Suchet Kumbar</b></p>
-          <p><b>Pratik Anand</b></p>
-        </div>
-
+  return (
+    <div className="premium-layout">
+      
+      {/* 3D Canvas Layer */}
+      <div className="canvas-wrapper">
+        <Canvas camera={{ position: [0, 0, 4] }}>
+          <ambientLight intensity={0.5} />
+          <NodeNetwork />
+        </Canvas>
+        <div className="canvas-gradient-overlay" />
       </div>
 
+      <div className="split-container">
+        
+        {/* Left Side: Hero Info */}
+        <section className="hero-section">
+          <div className="brand">
+            <ShieldAlert className="brand-icon" size={28} />
+            <span className="brand-text">Whistleblower-ZK</span>
+          </div>
+          
+          <div className="hero-content">
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+              Absolute <span>Privacy</span>.<br/> Cryptographic <span>Truth</span>.
+            </motion.h1>
+            
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            >
+              Prove the authenticity and contents of a highly classified document without ever revealing the file to the verifying network. Powered by Groth16 zk-SNARKs.
+            </motion.p>
+            
+            <motion.div 
+               className="tech-stack"
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               transition={{ duration: 1, delay: 0.5 }}
+            >
+               <span className="badge">Groth16</span>
+               <span className="badge">Poseidon Hash</span>
+               <span className="badge">Circom Circuit</span>
+            </motion.div>
+          </div>
+          
+          <div className="hero-footer">
+            <p className="version">v1.0.0 — Production Grade</p>
+          </div>
+        </section>
+
+        {/* Right Side: Command Center Panel */}
+        <section className="command-section">
+          <div className="command-card">
+            
+            {/* Header */}
+            <div className="card-header">
+              <h2>Command Center</h2>
+              <div className="status-indicator">
+                 <div className={`status-dot ${currentStep > 0 && currentStep < 5 ? 'active' : 'idle'}`} />
+                 <span>{currentStep === 0 ? "System Idle" : currentStep === 5 ? "Process Complete" : "Proving Active"}</span>
+              </div>
+            </div>
+
+            {/* Stepper / Timeline */}
+            <div className="timeline">
+              {steps.map((step, index) => {
+                const isActive = currentStep === index;
+                const isPast = currentStep > index;
+                return (
+                  <div key={index} className={`timeline-step ${isActive ? 'active' : ''} ${isPast ? 'past' : ''}`}>
+                     <div className="step-icon">
+                        {isPast ? <CheckCircle size={16}/> : step.icon}
+                     </div>
+                     <span className="step-label">{step.title}</span>
+                     {index < steps.length - 1 && <div className="step-connector" />}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Dynamic Content Area */}
+            <div className="card-body">
+              <AnimatePresence mode="wait">
+                
+                {/* IDLE STATE */}
+                {currentStep === 0 && (
+                  <motion.div
+                    key="upload"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className="upload-dropzone"
+                  >
+                     <div className="dropzone-inner">
+                        <UploadCloud size={48} className="drop-icon" strokeWidth={1.5} />
+                        <h3>Drop classified file here</h3>
+                        <p>Or click to browse from local secure storage. Files are never stored on disk.</p>
+                        <label className="btn-primary">
+                          <input type="file" onChange={handleFileUpload} />
+                          Browse Secure File
+                        </label>
+                     </div>
+                  </motion.div>
+                )}
+
+                {/* PROCESSING STATE */}
+                {currentStep > 0 && currentStep < 5 && (
+                  <motion.div
+                    key="processing"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="processing-view"
+                  >
+                     <div className="scanner-container">
+                        <div className="document-wireframe" />
+                        <div className="laser-beam" />
+                     </div>
+                     <div className="processing-text">
+                        <h3>{steps[currentStep].title}</h3>
+                        <p className="mono-hash">
+                           0x{Math.random().toString(16).substr(2, 32)}...
+                        </p>
+                     </div>
+                  </motion.div>
+                )}
+
+                {/* COMPLETE STATE */}
+                {currentStep === 5 && (
+                  <motion.div
+                    key="result"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`result-view ${isSuccess ? 'success' : 'error'}`}
+                  >
+                     <div className="result-icon-wrapper">
+                       {isSuccess ? <CheckCircle size={64} /> : <XCircle size={64} />}
+                     </div>
+                     <h3>{resultTitle}</h3>
+                     <p>{resultMsg}</p>
+                     
+                     <div className="result-actions">
+                        {isSuccess && <button className="btn-secondary">View On-chain Proof</button>}
+                        <button className="btn-primary" onClick={resetProcess}>
+                           Authenticate Another
+                        </button>
+                     </div>
+                  </motion.div>
+                )}
+                
+              </AnimatePresence>
+            </div>
+
+          </div>
+        </section>
+        
+      </div>
     </div>
-
   );
-
 }
 
 export default App;

@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -11,11 +13,14 @@
     "buffer": "^6.0.3",
     "circomlibjs": "^0.1.7",
     "crypto-browserify": "^3.12.1",
+    "framer-motion": "^12.35.1",
+    "lucide-react": "^0.577.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-scripts": "5.0.1",
     "snarkjs": "^0.7.6",
     "stream-browserify": "^3.0.0",
+    "three": "^0.183.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -43,8 +48,8 @@
     ]
   },
   "browser": {
-  "assert": "assert",
-  "stream": "stream-browserify",
-  "crypto": "crypto-browserify"
-}
+    "assert": "assert",
+    "stream": "stream-browserify",
+    "crypto": "crypto-browserify"
+  }
 }
